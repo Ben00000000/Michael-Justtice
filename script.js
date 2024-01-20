@@ -14,11 +14,19 @@ const healthValue = document.getElementById('healthValue');
 const ultimateButton = document.getElementById('ultimateButton');
 const scoreElement = document.getElementById('score');
 const preloader = document.getElementById('preloader');
+const explodeAudio = document.getElementById('explodeAudio');
+const overAudio = document.getElementById('overAudio');
+const punchAudio = document.getElementById('punchAudio');
+const ultiAudio = document.getElementById('ultiAudio');
+
+let isPunchAudioPlaying = false;
 
 
 
-character.style.bottom = "-35%"; // Set character at the bottom
 
+
+let currentPosition = window.innerWidth / 2;
+let isGameOver = false;
 
 let playerScore = 0;
 let isAttacking = false;
@@ -61,6 +69,8 @@ function showGameOverScreen() {
     ultimateButton.style.display = 'none';
     scoreElement.style.display = 'none';
 
+isGameOver = true;
+
    // Display game over screen
       const gameOverScreen = document.getElementById('gameOverScreen');
       gameOverScreen.style.display = 'flex'; // Show the game over screen
@@ -75,16 +85,22 @@ function showGameOverScreen() {
     const restartButton = document.getElementById('restartButton');
     restartButton.addEventListener('click', restartGame);
     restartButton.addEventListener('touchstart', restartGame);
+
+     if (!overAudio.played) {
+            overAudio.play();
+        }
 }
 
 
 function restartGame() {
+increaseBlueBarWidth(100);
     // Clear existing enemies
     enemies.forEach(({ enemy }) => {
         document.body.removeChild(enemy);
     });
     enemies.length = 0;
 
+isGameOver = false;
     // Reset player score and health
     blueBar.style.width = '0px';
     playerScore = 0;
@@ -117,32 +133,40 @@ function restartGame() {
 
 
 function animateCharacter(imageUrls, index = 0, timeout = 100, onFrameCallback = null) {
+    let animationDirection = 1; // 1 for forward, -1 for reverse
 
-
-    if ((isWalkingLeft || isWalkingRight) && imageUrls === playerImageUrls) {
-        // Only play idle frames when not walking or attacking (excluding ultimate state)
-        return;
-    }
-
-    if (index < imageUrls.length) {
-        character.src = imageUrls[index];
-        if (imageUrls === playerImageUrls) {
-            character.style.width = '10%';
-        } else if (imageUrls === attackRightImageUrls || imageUrls === attackLeftImageUrls) {
-            character.style.width = '15%';
+    function playNextFrame() {
+        const isIdleFrame = imageUrls === playerImageUrls;
+        if (isIdleFrame) {
+            // Set different height and width for idle frames
+            character.style.width = '20%'; // Adjust the width as needed
+            character.style.height = '63%'; // Adjust the height as needed
         } else {
+            // Reset to default height and width for other frames
             character.style.width = '';
+            character.style.height = '';
         }
+
+        character.src = imageUrls[index];
 
         if (onFrameCallback) {
             onFrameCallback(); // Call the callback after displaying each frame
         }
 
-        animationTimeout = setTimeout(() => animateCharacter(imageUrls, index + 1, timeout, onFrameCallback), timeout);
-    } else {
-        animationTimeout = setTimeout(() => animateCharacter(imageUrls, 0, timeout, onFrameCallback), timeout);
+        index += animationDirection;
+
+        if (index < 0 || index >= imageUrls.length) {
+            // Change direction when reaching the start or end
+            animationDirection *= -1;
+            index += 2 * animationDirection;
+        }
+
+        animationTimeout = setTimeout(playNextFrame, timeout);
     }
+
+    playNextFrame();
 }
+
 
 function isUltimateState() {
     return isAttacking;
@@ -164,49 +188,45 @@ function preloadImages(urls) {
 }
 
 const playerImageUrls = [];
-for (let i = 1; i <= 2; i++) {
-    playerImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/idle%20(${i}).png`);
+for (let i = 1; i <= 17; i++) {
+    playerImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/idle%20(${i}).png`);
 }
 
 const attackRightImageUrls = [];
-for (let i = 1; i <= 12; i++) {
-    attackRightImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/attackt%20(${i}).png`);
+for (let i = 1; i <= 22; i++) {
+    attackRightImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/attack%20(${i}).png`);
 }
 
 const attackLeftImageUrls = [];
-for (let i = 1; i <= 12; i++) {
-    attackLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/attacktleft%20(${i}).png`);
+for (let i = 1; i <= 22; i++) {
+    attackLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/attackleft%20(${i}).png`);
 }
 
 const walkRightImageUrls = [];
 for (let i = 1; i <= 10; i++) {
-    walkRightImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/right%20(${i}).png`);
+    walkRightImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/rightt%20(${i}).png`);
 }
 
 const walkLeftImageUrls = [];
-for (let i = 1; i <= 12; i++) {
-    walkLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/left%20(${i}).png`);
+for (let i = 1; i <=10; i++) {
+    walkLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/rightt%20(${i}).png`);
 }
 
 const enemyWalkLeftImageUrls = [];
-for (let i = 1; i <= 8; i++) {
-    enemyWalkLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/enemy%20(${i}).png`);
+for (let i = 1; i <= 9; i++) {
+    enemyWalkLeftImageUrls.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/enemy%20(${i}).png`);
 }
 
 const characterUltimateframes = [];
-for (let i = 1; i <= 8; i++) {
-    characterUltimateframes.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/ulti%20(${i}).png`);
+for (let i = 1; i <= 17; i++) {
+    characterUltimateframes.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/ulti%20(${i}).png`);
 }
 
 const hitFrames = [];
 for (let i = 1; i <= 8; i++) {
-    hitFrames.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/hit%20(${i}).png`);
+    hitFrames.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/hitt1%20(${i}).png`);
 }
 
-const summonFrame = [];
-for (let i = 1; i <= 8; i++) {
-    summonFrame.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/summonFrame%20(${i}).png`);
-}
 
 const ultimateOpening = [];
 for (let i = 1; i <= 8; i++) {
@@ -215,12 +235,17 @@ for (let i = 1; i <= 8; i++) {
 
 const ultimateOpening2 = [];
 for (let i = 1; i <= 5; i++) {
-    ultimateOpening2.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/opening2%20(${i}).png`);
+    ultimateOpening2.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/opening2%20(${i}).png`);
 }
 
 const exhaustedFrames = [];
 for (let i = 1; i <= 4; i++) {
     exhaustedFrames.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v2/main/exhausted%20(1).png(${i}).png`);
+}
+
+const enemyAttackFrames = [];
+for (let i = 1; i <= 14; i++) {
+    enemyAttackFrames.push(`https://raw.githubusercontent.com/Ben00000000/MJ-v3/main/enemyattack%20(${i}).png`);
 }
 
 
@@ -234,15 +259,25 @@ preloadImages(walkRightImageUrls);
 preloadImages(walkLeftImageUrls);
 preloadImages(characterUltimateframes);
 preloadImages(hitFrames);
-preloadImages(summonFrame);
 preloadImages(ultimateOpening);
 preloadImages(ultimateOpening2);
 preloadImages(exhaustedFrames);
+preloadImages(enemyAttackFrames);
 
 
 Promise.all([
     preloadImages(playerImageUrls),
     preloadImages(attackRightImageUrls),
+    preloadImages(enemyAttackFrames),
+    preloadImages(enemyWalkLeftImageUrls),
+    preloadImages(attackLeftImageUrls),
+    preloadImages(walkRightImageUrls),
+    preloadImages(walkLeftImageUrls),
+    preloadImages(characterUltimateframes),
+    preloadImages(hitFrames),
+    preloadImages(ultimateOpening),
+    preloadImages(ultimateOpening2),
+
     // Add other image URLs as needed
 ]).then(() => {
     // All images are loaded, start the game
@@ -272,6 +307,16 @@ let lastMoveDirection = null;
              }
          };
 
+         punchAudio.loop = true;
+         punchAudio.play();
+         isPunchAudioPlaying = true;
+
+         // Continuously play punch audio while attack frames are performing
+         punchAudio.addEventListener('ended', function() {
+             this.currentTime = 0;
+             this.play();
+         });
+
          if (attackDirection === 'right') {
              // Set a different timeout for attack frames
              animateCharacter(attackRightImageUrls, 0, 20, onFrameCallback); // 20 milliseconds for attack frames
@@ -281,6 +326,7 @@ let lastMoveDirection = null;
          }
      }
  }
+
 
 
 
@@ -320,8 +366,10 @@ function playHitFrames(enemyImage, enemy, direction) {
             setTimeout(() => playNextHitFrame(index + 1), hitFrameTimeout);
         } else {
             // Remove the enemy after playing all hit frames
+
             document.body.removeChild(enemy);
             const enemyIndex = enemies.findIndex((e) => e.enemy === enemy);
+             explodeAudio.play();
             if (enemyIndex !== -1) {
                 enemies.splice(enemyIndex, 1);
                 playerScore += 1; // Add one point for each enemy removed
@@ -345,6 +393,8 @@ function performUltimate() {
         isAttacking = true;
         clearTimeout(animationTimeout);
         ultimateButton.style.display = 'none'; // Hide the ultimate button
+
+        ultiAudio.play();
 
         const ultimateOpeningTimeout = 100; // Adjust the timeout between opening ultimate frames
         const ultimateOpeningFramesTotal = ultimateOpening.length;
@@ -410,16 +460,16 @@ function playNextUltimateFrame(index) {
         character.src = characterUltimateframes[index];
         setTimeout(() => playNextUltimateFrame(index + 1), ultimateTimeout);
     } else {
-     setTimeout(() => {
-
-        // Reset to idle frames after playing ultimate frames
-        animateCharacter(playerImageUrls); // Call the function to switch to idle frames
-  }, 1500);
+        setTimeout(() => {
+            // Reset to idle frames after playing ultimate frames
+            animateCharacter(playerImageUrls); // Call the function to switch to idle frames
+        }, 1500);
         // Play hit frames after the ultimate frames
         playHitFramesToAllEnemies();
         resetBlueBar();
     }
 }
+
 
 
         // Start playing the opening frames
@@ -447,6 +497,7 @@ function playHitFramesToAllEnemies() {
             // Remove the enemy after playing all hit frames
             document.body.removeChild(enemy);
             const enemyIndex = enemies.findIndex((e) => e.enemy === enemy);
+            explodeAudio.play();
             if (enemyIndex !== -1) {
                 enemies.splice(enemyIndex, 1);
                 playerScore += 1; // Add 1 score for each enemy removed
@@ -503,6 +554,9 @@ function handleAttackEnd() {
         clearTimeout(animationTimeout);
         isAttacking = false;
         character.style.width = '';
+         punchAudio.pause();
+                punchAudio.currentTime = 0;
+                isPunchAudioPlaying = false;
         setTimeout(() => animateCharacter(playerImageUrls), 0);
                     isAttackButtonPressed = false; // Set the flag to false on button release
 
@@ -512,14 +566,17 @@ function handleAttackEnd() {
 let moveInterval;
 let moveDirection = null;
 
-function handleMove(direction) {
-    lastMoveDirection = direction; // Update the last movement direction
+character.style.left = `${currentPosition}px`;
 
-    const currentLeft = parseInt(character.style.left, 10) || 0;
+function handleMove(direction) {
+    lastMoveDirection = direction;
+
     const step = 10;
 
     if (direction === 'left') {
-        character.style.left = `${Math.max(0, currentLeft - step)}px`;
+        currentPosition = Math.max(0, currentPosition - step);
+        character.style.left = `${currentPosition}px`;
+
         if (!isWalkingLeft) {
             isWalkingLeft = true;
             clearTimeout(animationTimeout);
@@ -527,7 +584,10 @@ function handleMove(direction) {
         }
         isWalkingRight = false;
     } else if (direction === 'right') {
-        character.style.left = `${Math.min(window.innerWidth - character.clientWidth, currentLeft + step)}px`;
+        const maxXPosition = window.innerWidth - character.clientWidth +200;
+        currentPosition = Math.min(maxXPosition, currentPosition + step);
+        character.style.left = `${currentPosition}px`;
+
         if (!isWalkingRight) {
             isWalkingRight = true;
             clearTimeout(animationTimeout);
@@ -537,22 +597,31 @@ function handleMove(direction) {
     }
 }
 
-  function stopMoving() {
-        if (isWalkingRight) {
-            isWalkingRight = false;
-            clearTimeout(animationTimeout);
-            if (!isAttackButtonPressed) {
-                animateCharacter(playerImageUrls); // Reset to idle frames only if the attack button is not pressed
-            }
-        }
-        if (isWalkingLeft) {
-            isWalkingLeft = false;
-            clearTimeout(animationTimeout);
-            if (!isAttackButtonPressed) {
-                animateCharacter(playerImageUrls); // Reset to idle frames only if the attack button is not pressed
-            }
+
+
+function stopMoving() {
+    if (isWalkingRight) {
+        isWalkingRight = false;
+        clearTimeout(animationTimeout);
+        if (!isAttackButtonPressed && !isAttacking) {
+            animateCharacter(playerImageUrls); // Reset to idle frames only if the attack button is not pressed and not attacking
         }
     }
+    if (isWalkingLeft) {
+        isWalkingLeft = false;
+        clearTimeout(animationTimeout);
+        if (!isAttackButtonPressed && !isAttacking) {
+            animateCharacter(playerImageUrls); // Reset to idle frames only if the attack button is not pressed and not attacking
+        }
+    }
+}
+
+if (isAttackButtonPressed) {
+        punchAudio.loop = true;
+        punchAudio.play();
+        isPunchAudioPlaying = true;
+    }
+
 
    attackButton.addEventListener('mousedown', () => {
         isAttackButtonPressed = true; // Set the flag to true on button press
@@ -583,20 +652,27 @@ moveRightButton.addEventListener('mouseup', () => {
 });
 
 // Touch events for mobile
-attackButton.addEventListener('touchstart', handleAttackStart);
 moveLeftButton.addEventListener('touchstart', () => {
     handleMove('left');
     moveInterval = setInterval(() => handleMove('left'), 100);
 });
+
 moveRightButton.addEventListener('touchstart', () => {
     handleMove('right');
     moveInterval = setInterval(() => handleMove('right'), 100);
 });
 
-document.addEventListener('touchend', () => {
+// Add touchend event listeners to stop moving when touch is released
+moveLeftButton.addEventListener('touchend', () => {
     clearInterval(moveInterval);
     stopMoving();
 });
+
+moveRightButton.addEventListener('touchend', () => {
+    clearInterval(moveInterval);
+    stopMoving();
+});
+
 
 ultimateButton.addEventListener('click', performUltimate);
 
@@ -638,10 +714,11 @@ function createEnemy(direction) {
 
 
 
+
 function moveEnemiesTowardsCharacter() {
     const characterRect = character.getBoundingClientRect();
 
-    enemies.forEach(({ enemy, enemyImage, direction, frameIndex }) => {
+    enemies.forEach(({ enemy, enemyImage, direction, frameIndex, hasCollided }) => {
         const enemyRect = enemy.getBoundingClientRect();
 
         if (
@@ -650,8 +727,28 @@ function moveEnemiesTowardsCharacter() {
             characterRect.bottom > enemyRect.top &&
             characterRect.top < enemyRect.bottom
         ) {
-            // Collision detected, decrease character's health
-            decreaseHealth(0.1); // Adjust the amount to decrease as needed
+            if (!hasCollided) {
+                // Collision detected, decrease character's health
+                decreaseHealth(0.1); // Adjust the amount to decrease as needed
+                hasCollided = true; // Set the collision flag to true to prevent continuous collision
+            }
+
+            // Use reversed attack frames when colliding
+            frameIndex = (frameIndex - 1 + enemyAttackFrames.length) % enemyAttackFrames.length;
+            enemyImage.src = enemyAttackFrames[frameIndex];
+
+            // Set the enemy height to 65%
+            enemy.style.height = '65%';
+        } else {
+            // Reset the collision flag when not colliding
+            hasCollided = false;
+
+            // Use walk frames when not colliding
+            frameIndex = (frameIndex + 1) % enemyWalkLeftImageUrls.length;
+            enemyImage.src = enemyWalkLeftImageUrls[frameIndex];
+
+            // Set the default enemy height
+            enemy.style.height = '60%';
         }
 
         if (characterRect.left < enemyRect.left) {
@@ -659,9 +756,6 @@ function moveEnemiesTowardsCharacter() {
         } else {
             enemy.style.left = `${parseInt(enemy.style.left) + 1}px`;
         }
-
-        frameIndex = (frameIndex + 1) % enemyWalkLeftImageUrls.length;
-        enemyImage.src = enemyWalkLeftImageUrls[frameIndex];
 
         enemies.find(e => e.enemy === enemy).frameIndex = frameIndex;
     });
@@ -676,90 +770,64 @@ function moveEnemiesTowardsCharacter() {
 
 
 
+
+
 function respawnEnemies() {
-    setInterval(() => {
-        // Calculate respawn position based on corners
-        const respawnPosition = Math.random() < 0.5 ? 'left' : 'right';
-        const newEnemy = createEnemy(respawnPosition);
-        enemies.push(newEnemy);
-    }, 5000); // Adjust the respawn interval as needed
+    if (!isGameOver) { // Check if the game is not over before respawning enemies
+        setInterval(() => {
+            // Calculate respawn position based on corners
+            const respawnPosition = Math.random() < 0.5 ? 'left' : 'right';
+            const newEnemy = createEnemy(respawnPosition);
+            enemies.push(newEnemy);
+        }, 2000); // Adjust the respawn interval as needed
+    }
 }
 
-function playSummonFrames() {
-    function createSummonCharacter(frameIndex) {
-        const summonCharacter = document.createElement('img');
-        summonCharacter.style.width = '60%';
-        summonCharacter.style.height = '60%';
-        summonCharacter.style.position = 'absolute';
-        summonCharacter.style.bottom = '0';
-        summonCharacter.style.left = '70%'; // Adjust as needed
-        summonCharacter.style.opacity = '0.6';
-       // summonCharacter.style.transform = 'scaleX(-1)'; // Flip the image if needed
-        summonCharacter.src = summonFrame[frameIndex];
-        document.body.appendChild(summonCharacter);
-        return summonCharacter;
-    }
 
-    function animateSummon(summonCharacter, frameIndex) {
-        if (frameIndex < summonFrame.length) {
-            summonCharacter.src = summonFrame[frameIndex];
-            setTimeout(() => animateSummon(summonCharacter, frameIndex + 1), 100); // Adjust the interval as needed
-        } else {
-            // Move to the next frame after a short delay
-            setTimeout(() => animateSummon(summonCharacter, 0), 100);
-        }
-    }
-
-    // Start the summoning animation with the first frame
-    const summonCharacter = createSummonCharacter(0);
-    animateSummon(summonCharacter, 1); // Start from the second frame
-}
-
-// Call playSummonFrames to start the summoning animation
-playSummonFrames();
-
-function playSummonFrames1() {
-    function createSummonCharacter(frameIndex) {
-        const summonCharacter = document.createElement('img');
-        summonCharacter.style.width = '60%';
-        summonCharacter.style.height = '60%';
-        summonCharacter.style.position = 'absolute';
-        summonCharacter.style.bottom = '0';
-        summonCharacter.style.left = '-30%'; // Adjust as needed
-        summonCharacter.style.transform = 'scaleX(-1)'; // Flip the image if needed
-        summonCharacter.style.opacity = '0.6';
-        summonCharacter.src = summonFrame[frameIndex];
-        document.body.appendChild(summonCharacter);
-        return summonCharacter;
-    }
-
-    function animateSummon(summonCharacter, frameIndex) {
-        if (frameIndex < summonFrame.length) {
-            summonCharacter.src = summonFrame[frameIndex];
-            setTimeout(() => animateSummon(summonCharacter, frameIndex + 1), 100); // Adjust the interval as needed
-        } else {
-            // Move to the next frame after a short delay
-            setTimeout(() => animateSummon(summonCharacter, 0), 100);
-        }
-    }
-
-    // Start the summoning animation with the first frame
-    const summonCharacter = createSummonCharacter(0);
-    animateSummon(summonCharacter, 1); // Start from the second frame
-}
-
-// Call playSummonFrames to start the summoning animation
-playSummonFrames1();
 
 
 function initializeGame() {
     enemies.push(createEnemy('left'));
     enemies.push(createEnemy('right'));
 
+    character.style.bottom = "-35%"; // Set character at the bottom
+       character.style.left = '50%';
+
+
+
     requestAnimationFrame(moveEnemiesTowardsCharacter);
     respawnEnemies();
     updateScore();
+
 }
 
 
 
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowLeft':
+            handleMove('left');
+            break;
+        case 'ArrowRight':
+            handleMove('right');
+            break;
+        case ' ':
+            isAttackButtonPressed = true; // Set the flag to true on spacebar press
+            handleAttackStart();
+            break;
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    switch (event.key) {
+        case 'ArrowLeft':
+        case 'ArrowRight':
+            clearInterval(moveInterval);
+            stopMoving();
+            break;
+        case ' ':
+            isAttackButtonPressed = false; // Set the flag to false on spacebar release
+            handleAttackEnd();
+            break;
+    }
+});

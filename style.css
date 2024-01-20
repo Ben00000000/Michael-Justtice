@@ -34,9 +34,9 @@ body {
 }
 
 #character {
-    width: 15%;
+    width: 25%;
     height: 65%;
-    position: absolute;
+    position: fixed;
     transform: translate(-50%, -50%);
 }
 
